@@ -8,15 +8,19 @@ st.set_page_config(page_title="🦙💬 Llama 2 Chatbot")
 # Replicate Credentials
 with st.sidebar:
     st.title('🦙💬 Llama 2 Chatbot')
-    if 'REPLICATE_API_TOKEN' in st.secrets:
+    
+    # Check if the API token is already stored in the session state
+    if 'replicate_api' in st.session_state:
         st.success('API key already provided!', icon='✅')
-        replicate_api = st.secrets['REPLICATE_API_TOKEN']
+        replicate_api = st.session_state.replicate_api
     else:
         replicate_api = st.text_input('Enter Replicate API token:', type='password')
-        if not (replicate_api.startswith('r8_') and len(replicate_api)==40):
-            st.warning('Please enter your credentials!', icon='⚠️')
+        if not (replicate_api.startswith('r8_') and len(replicate_api) == 40):
+            st.warning('Please enter a valid API token!', icon='⚠️')
         else:
+            st.session_state.replicate_api = replicate_api
             st.success('Proceed to entering your prompt message!', icon='👉')
+    
     os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
     st.subheader('Models and parameters')
@@ -57,7 +61,7 @@ def generate_llama2_response(prompt_input):
     return output
 
 # User-provided prompt
-if prompt := st.chat_input(disabled=not replicate_api):
+if prompt := st.chat_input(disabled='replicate_api' not in st.session_state):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
@@ -66,7 +70,7 @@ if prompt := st.chat_input(disabled=not replicate_api):
 if st.session_state.messages[-1]["role"] == "user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = generate_llama2_response(prompt)
+            response = generate_llama2_response(st.session_state.messages[-1]["content"])
             full_response = ''.join(response)
             st.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
