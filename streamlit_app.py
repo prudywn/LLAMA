@@ -1,4 +1,3 @@
-# %%
 import streamlit as st
 import replicate 
 import os
@@ -75,9 +74,3 @@ if st.session_state.messages[-1]["role"] == "user":
             full_response = ''.join(response)
             st.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-
-# %%
-
-
-
